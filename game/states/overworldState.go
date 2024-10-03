@@ -48,7 +48,8 @@ func (s *OverworldState) Render() string {
 }
 
 func movePlayer(x, y int, p *gameObject.Model, c *camera.Model, w *world.Model) {
-	p.SafeMove(x, y)
-	c.Follow(p.Position())
-	c.ClampViewPort(geometry.Point{X: 0, Y: 0}, w.Size)
+	if p.SafeMove(x, y) {
+		c.Follow(p.Position())
+		c.ClampViewPort(geometry.Point{X: 0, Y: 0}, w.Size)
+	}
 }

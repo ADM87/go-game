@@ -38,6 +38,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 
+		// Allow the game state machine to handle key presses
 		default:
 			return m, m.StateMachine.OnKeyPressed(msg.String())
 		}
