@@ -2,8 +2,8 @@ package game
 
 import (
 	"go-game/camera"
+	"go-game/gameObject"
 	"go-game/geometry"
-	"go-game/objects"
 	"go-game/world"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,14 +12,14 @@ import (
 type Model struct {
 	Camera camera.Model
 	World  world.Model
-	Player objects.GameObject
+	Player gameObject.Model
 }
 
 func NewGame(worldSize, viewSize geometry.Point) Model {
 	// Create critical game components
 	c := camera.NewCamera(viewSize.X, viewSize.Y)
 	w := world.NewWorld(worldSize.X, worldSize.Y)
-	p := objects.NewGameObject(1, 1, 1, &w)
+	p := gameObject.NewGameObject(1, 1, 1, &w)
 
 	// Set the camera's initial position to follow the player
 	c.Follow(p.Position())
@@ -59,7 +59,7 @@ func (m Model) View() string {
 	return m.World.Render(m.Camera.ViewPort())
 }
 
-func movePlayer(x, y int, p *objects.GameObject, c *camera.Model) {
+func movePlayer(x, y int, p *gameObject.Model, c *camera.Model) {
 	p.SafeMove(x, y)
 	c.Follow(p.Position())
 }

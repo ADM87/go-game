@@ -12,8 +12,11 @@ type Model struct {
 func NewCamera(width, height int) Model {
 	return Model{
 		viewPort: geometry.Rectangle{
-			Position: geometry.Point{X: -width / 2, Y: -height / 2},
-			Size:     geometry.Point{X: width, Y: height},
+			Position: geometry.Point{
+				X: -int(math.Floor(float64(width) / 2)),
+				Y: -int(math.Floor(float64(height) / 2)),
+			},
+			Size: geometry.Point{X: width, Y: height},
 		},
 	}
 }
