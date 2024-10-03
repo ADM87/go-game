@@ -58,7 +58,7 @@ func canMoveTo(x, y int, w *world.Model) bool {
 }
 
 func commitMove(x, y int, g *Model, w *world.Model) {
-	w.Set(g.position.X, g.position.Y, 0)
+	w.ClearAt(g.position.X, g.position.Y)
 	g.position.X = x
 	g.position.Y = y
 	w.Set(x, y, g.tid)

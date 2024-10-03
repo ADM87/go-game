@@ -31,6 +31,21 @@ func (c *Model) Move(x, y int) {
 	c.viewPort.Position.Y += y
 }
 
-func (c Model) ViewPort() geometry.Rectangle {
+func (c *Model) ViewPort() geometry.Rectangle {
 	return c.viewPort
+}
+
+func (c *Model) ClampViewPort(min, max geometry.Point) {
+	if c.viewPort.Position.X < min.X {
+		c.viewPort.Position.X = min.X
+	}
+	if c.viewPort.Position.Y < min.Y {
+		c.viewPort.Position.Y = min.Y
+	}
+	if c.viewPort.Position.X+c.viewPort.Size.X > max.X {
+		c.viewPort.Position.X = max.X - c.viewPort.Size.X
+	}
+	if c.viewPort.Position.Y+c.viewPort.Size.Y > max.Y {
+		c.viewPort.Position.Y = max.Y - c.viewPort.Size.Y
+	}
 }

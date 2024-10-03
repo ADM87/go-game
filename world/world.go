@@ -22,6 +22,10 @@ func (w *Model) Set(x, y, value int) {
 	w.matrix[y*w.Size.X+x] = value
 }
 
+func (w *Model) ClearAt(x, y int) {
+	w.Set(x, y, 0)
+}
+
 func (w *Model) IsEmpty(x, y int) bool {
 	return w.Get(x, y) == 0
 }
