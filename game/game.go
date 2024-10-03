@@ -1,31 +1,30 @@
 package game
 
 import (
-	"go-game/camera"
 	"go-game/geometry"
-	"go-game/objects"
-	"go-game/world"
+
+	game "go-game/game/states"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type Model struct {
-	Camera camera.Model
-	World  world.Model
-	Player objects.GameObject
+	StateMachine GameStateMachine
 }
 
-func NewGame(worldSize, viewSize geometry.Point) Model {
-	// Create critical game components
-	c := camera.NewCamera(viewSize.X, viewSize.Y)
-	w := world.NewWorld(worldSize.X, worldSize.Y)
-	p := objects.NewGameObject(1, 1, 1, &w)
+func NewGame() Model {
+	overworldState := game.NewOverworldState(
+		geometry.Point{X: 55, Y: 25},
+		geometry.Point{X: 50, Y: 20},
+	)
 
-	// Set the camera's initial position to follow the player
-	c.Follow(p.Position())
+	states := map[string]game.GameState{
+		"overworld": &overworldState,
+	}
 
-	// Return the game model
-	return Model{Camera: c, World: w, Player: p}
+	return Model{
+		StateMachine: NewGameStateMachine(states, "overworld"),
+	}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -39,27 +38,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 
-		case "up", "w":
-			movePlayer(0, -1, &m.Player, &m.Camera)
-
-		case "down", "s":
-			movePlayer(0, 1, &m.Player, &m.Camera)
-
-		case "left", "a":
-			movePlayer(-1, 0, &m.Player, &m.Camera)
-
-		case "right", "d":
-			movePlayer(1, 0, &m.Player, &m.Camera)
+		// Allow the game state machine to handle key presses
+		default:
+			return m, m.StateMachine.OnKeyPressed(msg.String())
 		}
 	}
 	return m, nil
 }
 
 func (m Model) View() string {
-	return m.World.Render(m.Camera.ViewPort())
-}
-
-func movePlayer(x, y int, p *objects.GameObject, c *camera.Model) {
-	p.SafeMove(x, y)
-	c.Follow(p.Position())
+	return m.StateMachine.Render()
 }
