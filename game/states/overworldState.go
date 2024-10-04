@@ -3,7 +3,6 @@ package game
 import (
 	"go-game/camera"
 	"go-game/gameObject"
-	"go-game/geometry"
 	"go-game/world"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -15,13 +14,13 @@ type OverworldState struct {
 	Player gameObject.Model
 }
 
-func NewOverworldState(worldSize, viewSize geometry.Point) OverworldState {
-	c := camera.NewCamera(viewSize.X, viewSize.Y) // Camera
-	w := world.NewWorld(worldSize.X, worldSize.Y) // World
-	p := gameObject.NewGameObject(1, 1, 1, &w)    // Player
+func NewOverworldState(worldWidth, worldHeight, viewWidth, viewHeight int) OverworldState {
+	w := world.NewWorld(worldWidth, worldHeight) // World
+	c := camera.NewCamera(viewWidth, viewHeight) // Camera
+	p := gameObject.NewGameObject(0, 0, 1, &w)   // Player
 
-	c.Follow(p.Position())
-	c.ClampViewPort(geometry.Point{X: 0, Y: 0}, w.Size)
+	// Set the player's initial position
+	movePlayer(5, 5, &p, &c, &w)
 
 	return OverworldState{Camera: c, World: w, Player: p}
 }
@@ -50,6 +49,8 @@ func (s *OverworldState) Render() string {
 func movePlayer(x, y int, p *gameObject.Model, c *camera.Model, w *world.Model) {
 	if p.SafeMove(x, y) {
 		c.Follow(p.Position())
-		c.ClampViewPort(geometry.Point{X: 0, Y: 0}, w.Size)
+		minX, minY := w.Min()
+		maxX, maxY := w.Max()
+		c.BoundTo(minX, minY, maxX, maxY)
 	}
 }

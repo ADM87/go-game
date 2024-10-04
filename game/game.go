@@ -1,8 +1,6 @@
 package game
 
 import (
-	"go-game/geometry"
-
 	game "go-game/game/states"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,10 +11,7 @@ type Model struct {
 }
 
 func NewGame() Model {
-	overworldState := game.NewOverworldState(
-		geometry.Point{X: 55, Y: 25},
-		geometry.Point{X: 50, Y: 20},
-	)
+	overworldState := game.NewOverworldState(50, 50, 35, 15)
 
 	states := map[string]game.GameState{
 		"overworld": &overworldState,

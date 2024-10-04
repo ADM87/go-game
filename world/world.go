@@ -1,25 +1,32 @@
 package world
 
-import "go-game/geometry"
-
 type Model struct {
-	matrix []int
-	Size   geometry.Point
+	matrix        []int
+	width, height int
 }
 
 func NewWorld(width, height int) Model {
 	return Model{
 		matrix: make([]int, width*height),
-		Size:   geometry.Point{X: width, Y: height},
+		width:  width,
+		height: height,
 	}
 }
 
-func (w Model) Get(x, y int) int {
-	return w.matrix[y*w.Size.X+x]
+func (w *Model) Min() (x, y int) {
+	return 0, 0
+}
+
+func (w *Model) Max() (x, y int) {
+	return w.width, w.height
+}
+
+func (w *Model) Get(x, y int) int {
+	return w.matrix[y*w.width+x]
 }
 
 func (w *Model) Set(x, y, value int) {
-	w.matrix[y*w.Size.X+x] = value
+	w.matrix[y*w.width+x] = value
 }
 
 func (w *Model) ClearAt(x, y int) {
@@ -31,12 +38,12 @@ func (w *Model) IsEmpty(x, y int) bool {
 }
 
 // Render returns a string representation of the world within the given viewPort.
-func (w *Model) Render(viewPort geometry.Rectangle) string {
+func (w *Model) Render(minX, minY, maxX, maxY int) string {
 	output := ""
-	for y := viewPort.Position.Y; y < viewPort.Position.Y+viewPort.Size.Y; y++ {
-		for x := viewPort.Position.X; x < viewPort.Position.X+viewPort.Size.X; x++ {
-			if x < 0 || y < 0 || x >= w.Size.X || y >= w.Size.Y {
-				output += "?" // Out of bounds
+	for y := minY; y < maxY; y++ {
+		for x := minX; x < maxX; x++ {
+			if x < 0 || y < 0 || x >= w.width || y >= w.height {
+				output += "?" // Out of boundsw.height
 			} else {
 				switch w.Get(x, y) {
 				case 0:
