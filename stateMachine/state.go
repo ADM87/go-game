@@ -1,8 +1,8 @@
-package game
+package stateMachine
 
 import tea "github.com/charmbracelet/bubbletea"
 
-type GameState interface {
+type State interface {
 	OnKeyPressed(key string) tea.Cmd
 	Render() string
 }
