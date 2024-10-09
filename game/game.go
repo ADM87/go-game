@@ -1,51 +1,64 @@
 package game
 
 import (
-	"go-game/geometry"
+	"go-game/data"
+	"go-game/gameStates/gameplay"
+	"go-game/gameStates/mapView"
+	"go-game/stateMachine"
 
-	game "go-game/game/states"
+	"strconv"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Model struct {
-	StateMachine GameStateMachine
+type Game struct {
+	gameModel    data.GameModel
+	stateMachine stateMachine.Model
 }
 
-func NewGame() Model {
-	overworldState := game.NewOverworldState(
-		geometry.Point{X: 55, Y: 25},
-		geometry.Point{X: 50, Y: 20},
-	)
-
-	states := map[string]game.GameState{
-		"overworld": &overworldState,
+func NewGame() Game {
+	mdl := data.NewGameModel()
+	gps := gameplay.NewState(&mdl)
+	mvs := mapView.NewState()
+	return Game{
+		stateMachine: stateMachine.NewStateMachine(
+			[]stateMachine.State{
+				&gps,
+				&mvs,
+			},
+			0,
+		),
 	}
-
-	return Model{
-		StateMachine: NewGameStateMachine(states, "overworld"),
-	}
 }
 
-func (m Model) Init() tea.Cmd {
-	return nil
+func (g Game) Init() tea.Cmd {
+	return g.stateMachine.Init()
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (g Game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "q":
-			return m, tea.Quit
+		key := msg.String()
+		switch key {
+		case "esc":
+			return g, tea.Quit
 
-		// Allow the game state machine to handle key presses
+		case "1", "2":
+			s, e := strconv.Atoi(key)
+			if e != nil {
+				panic(e)
+			}
+			if g.stateMachine.HasState(s - 1) {
+				g.stateMachine.SetState(s - 1)
+			}
+
 		default:
-			return m, m.StateMachine.OnKeyPressed(msg.String())
+			return g, g.stateMachine.OnKeyPressed(key)
 		}
 	}
-	return m, nil
+	return g, nil
 }
 
-func (m Model) View() string {
-	return m.StateMachine.Render()
+func (g Game) View() string {
+	return g.stateMachine.Render()
 }
