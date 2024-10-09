@@ -1,6 +1,7 @@
 package game
 
 import (
+	"go-game/data"
 	"go-game/gameStates/gameplay"
 	"go-game/gameStates/mapView"
 	"go-game/stateMachine"
@@ -10,14 +11,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type Model struct {
+type Game struct {
+	gameModel    data.GameModel
 	stateMachine stateMachine.Model
 }
 
-func NewGame() Model {
-	gps := gameplay.NewState()
+func NewGame() Game {
+	mdl := data.NewGameModel()
+	gps := gameplay.NewState(&mdl)
 	mvs := mapView.NewState()
-	return Model{
+	return Game{
 		stateMachine: stateMachine.NewStateMachine(
 			[]stateMachine.State{
 				&gps,
@@ -28,34 +31,34 @@ func NewGame() Model {
 	}
 }
 
-func (m Model) Init() tea.Cmd {
-	return m.stateMachine.Init()
+func (g Game) Init() tea.Cmd {
+	return g.stateMachine.Init()
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (g Game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		key := msg.String()
 		switch key {
 		case "esc":
-			return m, tea.Quit
+			return g, tea.Quit
 
 		case "1", "2":
 			s, e := strconv.Atoi(key)
 			if e != nil {
 				panic(e)
 			}
-			if m.stateMachine.HasState(s - 1) {
-				m.stateMachine.SetState(s - 1)
+			if g.stateMachine.HasState(s - 1) {
+				g.stateMachine.SetState(s - 1)
 			}
 
 		default:
-			return m, m.stateMachine.OnKeyPressed(key)
+			return g, g.stateMachine.OnKeyPressed(key)
 		}
 	}
-	return m, nil
+	return g, nil
 }
 
-func (m Model) View() string {
-	return m.stateMachine.Render()
+func (g Game) View() string {
+	return g.stateMachine.Render()
 }

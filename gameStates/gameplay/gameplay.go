@@ -1,34 +1,30 @@
 package gameplay
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"go-game/data"
 
-const _unknown int = -1
-const _empty int = 0
-const _wall int = 1
-const _player int = 2
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 type State struct {
-	world  World
-	camera Camera
-	tokens Tokens
-	player GameObject
+	world     World
+	camera    Camera
+	tokens    Tokens
+	player    GameObject
+	gameModel *data.GameModel
 }
 
-func NewState() State {
-	w := NewWorld(100, 100)
-	c := NewCamera(50, 15)
-	t := NewTokens(map[int]string{
-		_unknown: " ",
-		_empty:   " ",
-		_wall:    "█",
-		_player:  "☺",
-	})
-	p := NewGameObject(0, 0, _player, &w)
+func NewState(mdl *data.GameModel) State {
+	w := NewWorld(mdl.WorldWidth, mdl.WorldHeight)
+	c := NewCamera(mdl.ViewWidth, mdl.ViewHeight)
+	t := NewTokens(mdl.GameTokens)
+	p := NewGameObject(0, 0, data.PlayerId, &w)
 	return State{
-		world:  w,
-		camera: c,
-		tokens: t,
-		player: p,
+		world:     w,
+		camera:    c,
+		tokens:    t,
+		player:    p,
+		gameModel: mdl,
 	}
 }
 

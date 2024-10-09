@@ -1,5 +1,7 @@
 package gameplay
 
+import "go-game/data"
+
 /* Represents a position and token within the game world. */
 type Entity struct {
 	x, y int
@@ -27,7 +29,7 @@ func NewGameObject(x, y, id int, world *World) GameObject {
 /* Moves the object by dx and dy if the new position is empty. Returns whethers or not the move was successful. */
 func (o *GameObject) Move(dx, dy int) bool {
 	if o.World.IsEmpty(o.Entity.x+dx, o.Entity.y+dy) {
-		o.World.Set(o.Entity.x, o.Entity.y, _empty)
+		o.World.Set(o.Entity.x, o.Entity.y, data.EmptyId)
 		o.Entity.x += dx
 		o.Entity.y += dy
 		o.World.Set(o.Entity.x, o.Entity.y, o.Entity.id)
@@ -39,7 +41,7 @@ func (o *GameObject) Move(dx, dy int) bool {
 /* Sets the object's position to x and y if the new position is empty. Returns whether or not the set was successful. */
 func (o *GameObject) SetPosition(x, y int) bool {
 	if o.World.IsEmpty(x, y) {
-		o.World.Set(o.Entity.x, o.Entity.y, _empty)
+		o.World.Set(o.Entity.x, o.Entity.y, data.EmptyId)
 		o.Entity.x = x
 		o.Entity.y = y
 		o.World.Set(o.Entity.x, o.Entity.y, o.Entity.id)

@@ -1,5 +1,7 @@
 package gameplay
 
+import "go-game/data"
+
 type World struct {
 	width, height int
 	matrix        []int
@@ -22,7 +24,7 @@ func (w *World) Set(x, y, id int) {
 
 func (w *World) Get(x, y int) int {
 	if x < 0 || x >= w.width || y < 0 || y >= w.height {
-		return _unknown
+		return data.UnknownId
 	}
 	return w.matrix[y*w.width+x]
 }
@@ -32,5 +34,5 @@ func (w *World) Bounds() (int, int, int, int) {
 }
 
 func (w *World) IsEmpty(x, y int) bool {
-	return w.Get(x, y) == _empty
+	return w.Get(x, y) == data.EmptyId
 }

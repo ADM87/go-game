@@ -1,7 +1,7 @@
 package main
 
 import (
-	game "go-game/game"
+	"go-game/game"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
