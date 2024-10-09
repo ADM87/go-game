@@ -9,6 +9,10 @@ func NewState() State {
 	return State{}
 }
 
+func (s *State) Init() tea.Cmd {
+	return nil
+}
+
 func (s *State) OnKeyPressed(key string) tea.Cmd {
 	return nil
 }

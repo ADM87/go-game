@@ -27,6 +27,10 @@ func (w *World) Get(x, y int) int {
 	return w.matrix[y*w.width+x]
 }
 
+func (w *World) Bounds() (int, int, int, int) {
+	return 0, 0, w.width, w.height
+}
+
 func (w *World) IsEmpty(x, y int) bool {
 	return w.Get(x, y) == _empty
 }

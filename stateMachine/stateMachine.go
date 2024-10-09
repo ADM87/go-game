@@ -11,6 +11,10 @@ func NewStateMachine(states []State, initial int) Model {
 	return Model{states: states, current: initial}
 }
 
+func (m *Model) Init() tea.Cmd {
+	return m.states[m.current].Init()
+}
+
 func (m *Model) OnKeyPressed(key string) tea.Cmd {
 	return m.states[m.current].OnKeyPressed(key)
 }
