@@ -13,6 +13,7 @@ type GameModel struct {
 	ViewWidth   int
 	ViewHeight  int
 	GameTokens  map[int]string
+	PlayerModel PlayerModel
 }
 
 func NewGameModel() GameModel {
@@ -27,5 +28,6 @@ func NewGameModel() GameModel {
 			WallId:    "█",
 			PlayerId:  "☺",
 		},
+		PlayerModel: NewPlayerModel(),
 	}
 }

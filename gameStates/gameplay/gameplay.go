@@ -28,10 +28,9 @@ func NewState(mdl *data.GameModel) State {
 	}
 }
 
-func (s *State) Init() tea.Cmd {
+func (s *State) Init() {
 	s.player.SetPosition(5, 5)
 	s.UpdateCamera()
-	return nil
 }
 
 func (s *State) OnKeyPressed(key string) tea.Cmd {
@@ -57,7 +56,7 @@ func (s *State) Render() string {
 }
 
 func (s *State) UpdateCamera() {
-	bx, by, bw, bh := s.world.Bounds()
+	//bx, by, bw, bh := s.world.Bounds()
 	s.camera.Follow(&s.player.Entity)
-	s.camera.BoundTo(bx, by, bx+bw, by+bh)
+	//s.camera.BoundTo(bx, by, bx+bw, by+bh)
 }

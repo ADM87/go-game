@@ -3,7 +3,7 @@ package game
 import (
 	"go-game/data"
 	"go-game/gameStates/gameplay"
-	"go-game/gameStates/mapView"
+	"go-game/gameStates/playerStats"
 	"go-game/stateMachine"
 
 	"strconv"
@@ -12,14 +12,14 @@ import (
 )
 
 type Game struct {
-	gameModel    data.GameModel
 	stateMachine stateMachine.Model
+	gameModel    data.GameModel
 }
 
 func NewGame() Game {
 	mdl := data.NewGameModel()
 	gps := gameplay.NewState(&mdl)
-	mvs := mapView.NewState()
+	mvs := playerStats.NewState(&mdl)
 	return Game{
 		stateMachine: stateMachine.NewStateMachine(
 			[]stateMachine.State{
@@ -28,11 +28,13 @@ func NewGame() Game {
 			},
 			0,
 		),
+		gameModel: mdl,
 	}
 }
 
 func (g Game) Init() tea.Cmd {
-	return g.stateMachine.Init()
+	g.stateMachine.Init()
+	return nil
 }
 
 func (g Game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -60,5 +62,7 @@ func (g Game) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (g Game) View() string {
-	return g.stateMachine.Render()
+	output := "\n" + g.stateMachine.Render()
+	output += "\nPress Esc to quit"
+	return output
 }
