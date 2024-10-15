@@ -12,6 +12,8 @@ type State struct {
 	tokens    Tokens
 	player    GameObject
 	gameModel *data.GameModel
+
+	testMap Map
 }
 
 func NewState(mdl *data.GameModel) State {
@@ -25,11 +27,17 @@ func NewState(mdl *data.GameModel) State {
 		tokens:    t,
 		player:    p,
 		gameModel: mdl,
+		testMap:   NewMap(mdl.WorldWidth, mdl.WorldHeight),
 	}
 }
 
 func (s *State) Init() {
-	s.player.SetPosition(5, 5)
+	s.world.SetMatrix(s.testMap.layout)
+
+	spawnX := s.testMap.spawn % s.gameModel.WorldWidth
+	spawnY := s.testMap.spawn / s.gameModel.WorldWidth
+
+	s.player.SetPosition(spawnX, spawnY)
 	s.UpdateCamera()
 }
 
@@ -56,7 +64,7 @@ func (s *State) Render() string {
 }
 
 func (s *State) UpdateCamera() {
-	//bx, by, bw, bh := s.world.Bounds()
+	// bx, by, bw, bh := s.world.Bounds()
 	s.camera.Follow(&s.player.Entity)
-	//s.camera.BoundTo(bx, by, bx+bw, by+bh)
+	// s.camera.BoundTo(bx, by, bx+bw, by+bh)
 }

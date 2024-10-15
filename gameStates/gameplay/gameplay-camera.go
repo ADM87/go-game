@@ -49,7 +49,11 @@ func (c *Camera) Buffer(world *World, tokens *Tokens) string {
 	output := ""
 	for y := c.y; y < c.y+c.height; y++ {
 		for x := c.x; x < c.x+c.width; x++ {
-			output += tokens.GetToken(world.Get(x, y))
+			if x < 0 || y < 0 || x >= world.width || y >= world.height {
+				output += " "
+			} else {
+				output += tokens.GetToken(world.Get(x, y))
+			}
 		}
 		output += "\n"
 	}

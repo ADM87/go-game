@@ -9,15 +9,15 @@ import (
 
 type State struct {
 	gameModel *data.GameModel
-	hpBar     ProgressBars
-	xpBar     ProgressBars
+	hpBar     ProgressBar
+	xpBar     ProgressBar
 }
 
 func NewState(mdl *data.GameModel) State {
 	return State{
 		gameModel: mdl,
-		hpBar:     NewProgressBars(40, "#990202"),
-		xpBar:     NewProgressBars(40, "#0f9902"),
+		hpBar:     NewProgressBar(40, "#990202"),
+		xpBar:     NewProgressBar(40, "#0f9902"),
 	}
 }
 

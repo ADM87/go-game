@@ -2,22 +2,22 @@ package playerStats
 
 import "github.com/charmbracelet/bubbles/progress"
 
-type ProgressBars struct {
+type ProgressBar struct {
 	width    int
 	color    string
 	progress progress.Model
 }
 
-func NewProgressBars(width int, color string) ProgressBars {
+func NewProgressBar(width int, color string) ProgressBar {
 	prg := progress.New(progress.WithWidth(width), progress.WithSolidFill(color))
-	return ProgressBars{
+	return ProgressBar{
 		width:    width,
 		color:    color,
 		progress: prg,
 	}
 }
 
-func (p *ProgressBars) Render(c, t int) string {
+func (p *ProgressBar) Render(c, t int) string {
 	return p.progress.ViewAs(calculateRatio(c, t))
 }
 

@@ -15,6 +15,12 @@ func NewWorld(width, height int) World {
 	}
 }
 
+func (w *World) SetMatrix(matrix []int) {
+	for i, id := range matrix {
+		w.matrix[i] = id
+	}
+}
+
 func (w *World) Set(x, y, id int) {
 	if x < 0 || x >= w.width || y < 0 || y >= w.height {
 		return
