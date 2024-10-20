@@ -12,32 +12,27 @@ type State struct {
 	tokens    Tokens
 	player    GameObject
 	gameModel *data.GameModel
-
-	testMap Map
 }
 
 func NewState(mdl *data.GameModel) State {
-	w := NewWorld(mdl.WorldWidth, mdl.WorldHeight)
+	w := NewWorld()
 	c := NewCamera(mdl.ViewWidth, mdl.ViewHeight)
 	t := NewTokens(mdl.GameTokens)
-	p := NewGameObject(0, 0, data.PlayerId, &w)
+	p := NewGameObject(-1, -1, data.PlayerId, &w)
 	return State{
 		world:     w,
 		camera:    c,
 		tokens:    t,
 		player:    p,
 		gameModel: mdl,
-		testMap:   NewMap(mdl.WorldWidth, mdl.WorldHeight),
 	}
 }
 
 func (s *State) Init() {
-	s.world.SetMatrix(s.testMap.layout)
-
-	spawnX := s.testMap.spawn % s.gameModel.WorldWidth
-	spawnY := s.testMap.spawn / s.gameModel.WorldWidth
-
-	s.player.SetPosition(spawnX, spawnY)
+	s.player.SetPosition(
+		s.world.CurrentMap().spawnX,
+		s.world.CurrentMap().spawnY,
+	)
 	s.UpdateCamera()
 }
 
@@ -60,11 +55,28 @@ func (s *State) OnKeyPressed(key string) tea.Cmd {
 }
 
 func (s *State) Render() string {
-	return s.camera.Buffer(&s.world, &s.tokens)
+	output := s.camera.Buffer(&s.world, &s.tokens)
+	return output
 }
 
 func (s *State) UpdateCamera() {
-	// bx, by, bw, bh := s.world.Bounds()
 	s.camera.Follow(&s.player.Entity)
-	// s.camera.BoundTo(bx, by, bx+bw, by+bh)
+
+	// If the world is larger than the camera view,  bound the camera to the edges
+	if s.world.CurrentMap().width > s.camera.width {
+		if s.camera.x < 0 {
+			s.camera.x = 0
+		}
+		if s.camera.x > s.world.CurrentMap().width-s.camera.width {
+			s.camera.x = s.world.CurrentMap().width - s.camera.width
+		}
+	}
+	if s.world.CurrentMap().height > s.camera.height {
+		if s.camera.y < 0 {
+			s.camera.y = 0
+		}
+		if s.camera.y > s.world.CurrentMap().height-s.camera.height {
+			s.camera.y = s.world.CurrentMap().height - s.camera.height
+		}
+	}
 }

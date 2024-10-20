@@ -1,10 +1,10 @@
 package data
 
 const (
-	UnknownId int = -1
-	EmptyId   int = 0
-	WallId    int = 1
-	PlayerId  int = 2
+	UnknownId = iota - 1
+	EmptyId
+	WallId
+	PlayerId
 )
 
 type GameModel struct {
@@ -20,13 +20,13 @@ func NewGameModel() GameModel {
 	return GameModel{
 		WorldWidth:  100,
 		WorldHeight: 100,
-		ViewWidth:   50,
-		ViewHeight:  15,
+		ViewWidth:   75,
+		ViewHeight:  20,
 		GameTokens: map[int]string{
 			UnknownId: "?",
 			EmptyId:   " ",
 			WallId:    "█",
-			PlayerId:  "☺",
+			PlayerId:  "O",
 		},
 		PlayerModel: NewPlayerModel(),
 	}

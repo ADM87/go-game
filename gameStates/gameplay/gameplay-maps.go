@@ -1,195 +1,258 @@
 package gameplay
 
 import (
-	"golang.org/x/exp/rand"
+	"go-game/data"
+	"math"
+	"math/rand"
 )
 
 const (
-	MinRoomCount        = 15
-	MaxRoomCount        = 20
-	MinRoomWidth        = 15
-	MaxRoomWidth        = 20
-	MinRoomHeight       = 5
-	MaxRoomHeight       = 10
-	PaddingBetweenRooms = 5
+	MinRoomCount  = 50
+	MaxRoomCount  = 60
+	MinRoomWidth  = 15
+	MaxRoomWidth  = 19
+	MinRoomHeight = 7
+	MaxRoomHeight = 13
+)
+
+const (
+	North = iota
+	East
+	South
+	West
 )
 
 type Room struct {
-	minX, minY int
-	maxX, maxY int
-	x, y       int
-	neighbors  []*Room
+	width, height int
+	x, y          int
+	neighbors     []*Room
+}
+
+func NewRoom(w, h int) Room {
+	return Room{
+		width:     w,
+		height:    h,
+		x:         0,
+		y:         0,
+		neighbors: make([]*Room, 4),
+	}
+}
+
+func (r *Room) MinX() int {
+	return r.x
+}
+
+func (r *Room) MinY() int {
+	return r.y
+}
+
+func (r *Room) Min() (int, int) {
+	return r.MinX(), r.MinY()
+}
+
+func (r *Room) MaxX() int {
+	return r.x + r.width
+}
+
+func (r *Room) MaxY() int {
+	return r.y + r.height
+}
+
+func (r *Room) Max() (int, int) {
+	return r.MaxX(), r.MaxY()
+}
+
+func (r *Room) CenterX() int {
+	return r.x + int(math.Floor(float64(r.width/2)))
+}
+
+func (r *Room) CenterY() int {
+	return r.y + int(math.Floor(float64(r.height/2)))
+}
+
+func (r *Room) Center() (int, int) {
+	return r.CenterX(), r.CenterY()
 }
 
 type Map struct {
-	spawn  int     // Index of the spawn point
-	exit   int     // Index of the exit point
-	rooms  []*Room // List of rooms
-	layout []int   // 1D array representing the map layout
+	spawnX, spawnY int
+	exitX, exitY   int
+	width, height  int
+	rooms          []Room
+	layout         []int
 }
 
-func NewMap(width, height int) Map {
-	rs := make([]*Room, 0)
-	rx := width / 2
-	ry := height / 2
-	rw := MinRoomWidth + rand.Intn(MaxRoomWidth-MinRoomWidth)
-	rh := MinRoomHeight + rand.Intn(MaxRoomHeight-MinRoomHeight)
-	r := Room{
-		minX:      rx - rw/2,
-		minY:      ry - rh/2,
-		maxX:      rx + rw/2,
-		maxY:      ry + rh/2,
-		x:         rx,
-		y:         ry,
-		neighbors: make([]*Room, 4),
-	}
-	rs = append(rs, &r)
-	roomCount := MinRoomCount + rand.Intn(MaxRoomCount-MinRoomCount)
+func NewMap() Map {
+	newMap := Map{}
 
-	generate(&r, &rs, roomCount, width, height)
-	return Map{
-		spawn:  rs[0].y*width + rs[0].x,
-		exit:   0,
-		rooms:  rs,
-		layout: makeLayout(&rs, width, height),
+	w := MinRoomWidth + rand.Intn(MaxRoomWidth-MinRoomWidth)
+	h := MinRoomHeight + rand.Intn(MaxRoomHeight-MinRoomHeight)
+
+	// Create the first room
+	r := NewRoom(w, h)
+
+	// Add the first room to the map
+	newMap.rooms = append(newMap.rooms, r)
+
+	maxRooms := max(MinRoomCount, MaxRoomCount)
+	if MaxRoomCount != MinRoomCount {
+		maxRooms = MinRoomCount + rand.Intn(MaxRoomCount-MinRoomCount)
 	}
+
+	// Generate rooms
+	generateRooms(&r, &newMap.rooms, maxRooms)
+
+	// Fix room coordinates so they are not negative
+	fixRoomCoordinates(&newMap.rooms)
+
+	// Calculate the map's dimensions
+	newMap.width, newMap.height = calculateMapDimensions(&newMap.rooms)
+
+	// Define layout
+	newMap.layout = make([]int, newMap.width*newMap.height)
+
+	// Draw layout
+	drawWalls(&newMap.rooms, &newMap.layout, newMap.width)
+	drawDoors(&newMap.rooms, &newMap.layout, newMap.width)
+
+	// Set spawn and exit
+	newMap.spawnX, newMap.spawnY = newMap.rooms[0].Center()
+	newMap.exitX, newMap.exitY = newMap.rooms[len(newMap.rooms)-1].Center()
+
+	return newMap
 }
 
-func generate(r *Room, rs *[]*Room, rc, w, h int) (bool, *[]*Room) {
-	if len(*rs) >= rc {
-		return false, rs
+func generateRooms(cr *Room, rs *[]Room, max int) {
+	if len(*rs) == max {
+		return
 	}
 
-	rw := MinRoomWidth + rand.Intn(MaxRoomWidth-MinRoomWidth)
-	rh := MinRoomHeight + rand.Intn(MaxRoomHeight-MinRoomHeight)
-	hw := rw / 2
-	hh := rh / 2
-
-	// North, East, South, West
-	directions := []int{0, 1, 2, 3}
+	directions := []int{North, East, South, West}
 
 	for {
-		if len(directions) == 0 || len(*rs) >= rc {
-			return false, rs
+		if len(directions) == 0 || len(*rs) == max {
+			return
 		}
 
 		i := rand.Intn(len(directions))
 		dir := directions[i]
-		// Remove the direction from the list
 		directions = append(directions[:i], directions[i+1:]...)
 
-		if r.neighbors[dir] != nil {
+		if cr.neighbors[dir] != nil {
+			generateRooms(cr.neighbors[dir], rs, max)
 			continue
 		}
 
-		var nx, ny int
+		w := MinRoomWidth + rand.Intn(MaxRoomWidth-MinRoomWidth)
+		h := MinRoomHeight + rand.Intn(MaxRoomHeight-MinRoomHeight)
+
+		nr := NewRoom(w, h)
+
 		switch dir {
-		case 0: // North
-			nx = r.x
-			ny = r.y - rh - PaddingBetweenRooms
-		case 1: // East
-			nx = r.x + rw + PaddingBetweenRooms
-			ny = r.y
-		case 2: // South
-			nx = r.x
-			ny = r.y + rh + PaddingBetweenRooms
-		case 3: // West
-			nx = r.x - rw - PaddingBetweenRooms
-			ny = r.y
+		case North:
+			nr.x = cr.CenterX() - int(math.Floor(float64(w/2)))
+			nr.y = cr.MinY() - h
+		case South:
+			nr.x = cr.CenterX() - int(math.Floor(float64(w/2)))
+			nr.y = cr.MaxY()
+		case East:
+			nr.x = cr.MaxX()
+			nr.y = cr.CenterY() - int(math.Floor(float64(h/2)))
+		case West:
+			nr.x = cr.MinX() - w
+			nr.y = cr.CenterY() - int(math.Floor(float64(h/2)))
 		}
 
-		// Create the new room
-		nr := Room{
-			minX:      nx - hw,
-			minY:      ny - hh,
-			maxX:      nx + hw,
-			maxY:      ny + hh,
-			x:         nx,
-			y:         ny,
-			neighbors: make([]*Room, 4),
-		}
-
-		// Check if the room is within bounds
-		if nr.minX < 0 || nr.minY < 0 || nr.maxX >= w || nr.maxY >= h {
-			continue
-		}
-
-		// Check if the room overlaps with any existing rooms
-		overlaps := false
-		for i := 0; i < len(*rs); i++ {
-			if nr.minX <= (*rs)[i].maxX && nr.maxX >= (*rs)[i].minX &&
-				nr.minY <= (*rs)[i].maxY && nr.maxY >= (*rs)[i].minY {
-				overlaps = true
+		isOverlapping := false
+		for i := range *rs {
+			if nr.x < (*rs)[i].MaxX() && nr.MaxX() > (*rs)[i].MinX() && nr.y < (*rs)[i].MaxY() && nr.MaxY() > (*rs)[i].MinY() {
+				isOverlapping = true
 				break
 			}
 		}
-		if overlaps {
+
+		if isOverlapping {
 			continue
 		}
 
-		// Set the neighbors: N<>S, E<>W
-		// Set the neighbors: N<>S, E<>W
-		oppositeDir := (dir + 2) % 4
-		r.neighbors[dir] = &nr
-		nr.neighbors[oppositeDir] = r
+		cr.neighbors[dir] = &(*rs)[len(*rs)-1]
+		nr.neighbors[(dir+2)%4] = cr
 
-		// Add the room to the list
-		*rs = append(*rs, &nr)
+		*rs = append(*rs, nr)
 
-		generate(&nr, rs, rc, w, h)
+		generateRooms(&nr, rs, max)
 	}
 }
 
-func makeLayout(rs *[]*Room, w, h int) []int {
-	l := make([]int, w*h)
+func fixRoomCoordinates(r *[]Room) {
+	minX, minY := 0, 0
+	for i := range *r {
+		minX = min(minX, (*r)[i].MinX())
+		minY = min(minY, (*r)[i].MinY())
+	}
+	for i := range *r {
+		(*r)[i].x -= minX
+		(*r)[i].y -= minY
+	}
+}
 
-	// Draw room outlines
-	for i := 0; i < len(*rs); i++ {
-		for y := (*rs)[i].minY; y <= (*rs)[i].maxY; y++ {
-			for x := (*rs)[i].minX; x <= (*rs)[i].maxX; x++ {
-				if x == (*rs)[i].minX || x == (*rs)[i].maxX || y == (*rs)[i].minY || y == (*rs)[i].maxY {
-					l[y*w+x] = 1
+func calculateMapDimensions(r *[]Room) (int, int) {
+	minX, minY := 0, 0
+	maxX, maxY := 0, 0
+	for i := range *r {
+		minX = min(minX, (*r)[i].MinX())
+		minY = min(minY, (*r)[i].MinY())
+	}
+	for i := range *r {
+		maxX = max(maxX, (*r)[i].MaxX())
+		maxY = max(maxY, (*r)[i].MaxY())
+	}
+	return maxX - minX, maxY - minY
+}
+
+func drawWalls(r *[]Room, l *[]int, w int) {
+	for i := range *r {
+		for x := (*r)[i].MinX(); x < (*r)[i].MaxX(); x++ {
+			for y := (*r)[i].MinY(); y < (*r)[i].MaxY(); y++ {
+				if x == (*r)[i].MinX() || x == (*r)[i].MaxX()-1 || y == (*r)[i].MinY() || y == (*r)[i].MaxY()-1 {
+					(*l)[x+y*w] = data.WallId
 				}
-			}
-		}
-
-		// Connect neighbors
-		for j := 0; j < len((*rs)[i].neighbors); j++ {
-			room := (*rs)[i].neighbors[j]
-
-			if room == nil {
-				continue
-			}
-
-			// Clear doorways
-			switch j {
-			case 0: // North
-				l[(*rs)[i].minY*w+(*rs)[i].x-1] = 0
-				l[(*rs)[i].minY*w+(*rs)[i].x] = 0
-				l[(*rs)[i].minY*w+(*rs)[i].x+1] = 0
-				for y := (*rs)[i].minY - 1; y >= (*rs)[i].neighbors[j].maxY; y-- {
-					l[y*w+(*rs)[i].x-2] = 1
-					l[y*w+(*rs)[i].x+2] = 1
-				}
-			case 1: // East
-				l[((*rs)[i].y-1)*w+(*rs)[i].maxX] = 0
-				l[(*rs)[i].y*w+(*rs)[i].maxX] = 0
-				l[((*rs)[i].y+1)*w+(*rs)[i].maxX] = 0
-				for x := (*rs)[i].maxX + 1; x <= (*rs)[i].neighbors[j].minX; x++ {
-					l[((*rs)[i].y-2)*w+x] = 1
-					l[((*rs)[i].y+2)*w+x] = 1
-				}
-			case 2: // South
-				l[(*rs)[i].maxY*w+(*rs)[i].x-1] = 0
-				l[(*rs)[i].maxY*w+(*rs)[i].x] = 0
-				l[(*rs)[i].maxY*w+(*rs)[i].x+1] = 0
-			case 3: // West
-				l[((*rs)[i].y-1)*w+(*rs)[i].minX] = 0
-				l[(*rs)[i].y*w+(*rs)[i].minX] = 0
-				l[((*rs)[i].y+1)*w+(*rs)[i].minX] = 0
 			}
 		}
 	}
+}
 
-	return l
+func drawDoors(r *[]Room, l *[]int, w int) {
+	for i := range *r {
+		for j := range (*r)[i].neighbors {
+			if (*r)[i].neighbors[j] == nil {
+				continue
+			}
+
+			x, y := (*r)[i].Center()
+			minX, minY := (*r)[i].Min()
+			maxX, maxY := (*r)[i].Max()
+			minX -= 1
+			minY -= 1
+
+			switch j {
+			case North:
+				for k := x - 1; k <= x+1; k++ {
+					(*l)[k+minY*w] = data.EmptyId
+				}
+			case South:
+				for k := x - 1; k <= x+1; k++ {
+					(*l)[k+maxY*w] = data.EmptyId
+				}
+			case East:
+				for k := y - 1; k <= y+1; k++ {
+					(*l)[maxX+k*w] = data.EmptyId
+				}
+			case West:
+				for k := y - 1; k <= y+1; k++ {
+					(*l)[minX+k*w] = data.EmptyId
+				}
+			}
+		}
+	}
 }

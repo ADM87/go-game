@@ -28,14 +28,7 @@ func NewGameObject(x, y, id int, world *World) GameObject {
 
 /* Moves the object by dx and dy if the new position is empty. Returns whethers or not the move was successful. */
 func (o *GameObject) Move(dx, dy int) bool {
-	if o.World.IsEmpty(o.Entity.x+dx, o.Entity.y+dy) {
-		o.World.Set(o.Entity.x, o.Entity.y, data.EmptyId)
-		o.Entity.x += dx
-		o.Entity.y += dy
-		o.World.Set(o.Entity.x, o.Entity.y, o.Entity.id)
-		return true
-	}
-	return false
+	return o.SetPosition(o.Entity.x+dx, o.Entity.y+dy)
 }
 
 /* Sets the object's position to x and y if the new position is empty. Returns whether or not the set was successful. */

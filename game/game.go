@@ -19,12 +19,12 @@ type Game struct {
 func NewGame() Game {
 	mdl := data.NewGameModel()
 	gps := gameplay.NewState(&mdl)
-	mvs := playerStats.NewState(&mdl)
+	pss := playerStats.NewState(&mdl)
 	return Game{
 		stateMachine: stateMachine.NewStateMachine(
 			[]stateMachine.State{
 				&gps,
-				&mvs,
+				&pss,
 			},
 			0,
 		),
