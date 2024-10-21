@@ -55,7 +55,8 @@ func (s *State) OnKeyPressed(key string) tea.Cmd {
 }
 
 func (s *State) Render() string {
-	output := s.camera.Buffer(&s.world, &s.tokens)
+	output := "Use arrow keys to move\n\n"
+	output += s.camera.Buffer(&s.world, &s.tokens)
 	return output
 }
 

@@ -9,10 +9,10 @@ import (
 const (
 	MinRoomCount  = 50
 	MaxRoomCount  = 60
-	MinRoomWidth  = 15
-	MaxRoomWidth  = 19
+	MinRoomWidth  = 11
+	MaxRoomWidth  = 13
 	MinRoomHeight = 7
-	MaxRoomHeight = 13
+	MaxRoomHeight = 9
 )
 
 const (
@@ -85,8 +85,7 @@ type Map struct {
 func NewMap() Map {
 	newMap := Map{}
 
-	w := MinRoomWidth + rand.Intn(MaxRoomWidth-MinRoomWidth)
-	h := MinRoomHeight + rand.Intn(MaxRoomHeight-MinRoomHeight)
+	w, h := getRoomSize()
 
 	// Create the first room
 	r := NewRoom(w, h)
@@ -122,6 +121,18 @@ func NewMap() Map {
 	return newMap
 }
 
+func getRoomSize() (int, int) {
+	w := MinRoomWidth + rand.Intn(MaxRoomWidth-MinRoomWidth)
+	h := MinRoomHeight + rand.Intn(MaxRoomHeight-MinRoomHeight)
+	if w%2 == 0 {
+		w++
+	}
+	if h%2 == 0 {
+		h++
+	}
+	return w, h
+}
+
 func generateRooms(cr *Room, rs *[]Room, max int) {
 	if len(*rs) == max {
 		return
@@ -143,9 +154,7 @@ func generateRooms(cr *Room, rs *[]Room, max int) {
 			continue
 		}
 
-		w := MinRoomWidth + rand.Intn(MaxRoomWidth-MinRoomWidth)
-		h := MinRoomHeight + rand.Intn(MaxRoomHeight-MinRoomHeight)
-
+		w, h := getRoomSize()
 		nr := NewRoom(w, h)
 
 		switch dir {
@@ -170,7 +179,6 @@ func generateRooms(cr *Room, rs *[]Room, max int) {
 				break
 			}
 		}
-
 		if isOverlapping {
 			continue
 		}
@@ -237,11 +245,11 @@ func drawDoors(r *[]Room, l *[]int, w int) {
 
 			switch j {
 			case North:
-				for k := x - 1; k <= x+1; k++ {
+				for k := x - 2; k <= x+2; k++ {
 					(*l)[k+minY*w] = data.EmptyId
 				}
 			case South:
-				for k := x - 1; k <= x+1; k++ {
+				for k := x - 2; k <= x+2; k++ {
 					(*l)[k+maxY*w] = data.EmptyId
 				}
 			case East:
